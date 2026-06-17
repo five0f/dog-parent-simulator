@@ -20,7 +20,6 @@ export default function DaySummary({ summary, onContinue }: Props) {
           {summary.conditionLines.map((line) => (
             <span key={line}>{line}</span>
           ))}
-          <span>Деньги: {summary.money} ₽</span>
         </div>
         <button onClick={onContinue}>Проснуться завтра</button>
       </section>

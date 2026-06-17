@@ -21,10 +21,9 @@ export default function EndingScreen({ endingId, state, onRestart }: Props) {
         <h1>{ending.title}</h1>
         <p>{ending.text}</p>
         <div className="ending-score">
-          <b>Деньги: {state.money} ₽</b>
           <b>Воспоминаний: {state.memories.length}</b>
           <b>Доверие: {state.stats.trust >= 68 ? 'крепкое' : state.stats.trust >= 35 ? 'растёт' : 'хрупкое'}</b>
-          <b>Целей: {state.goals.filter((goal) => goal.done).length}</b>
+          <b>Настроение: {state.stats.mood >= 68 ? 'счастлив' : state.stats.mood >= 35 ? 'спокоен' : 'грустит'}</b>
         </div>
         <button onClick={onRestart}>Начать заново</button>
       </div>

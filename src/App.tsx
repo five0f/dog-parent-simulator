@@ -5,8 +5,8 @@ import EndingScreen from './components/EndingScreen';
 import LocationMap from './components/LocationMap';
 import Scene from './components/Scene';
 import StatsPanel from './components/StatsPanel';
-import { applyChoice, createInitialState, dismissDaySummary, getDecision, loadGame, saveGame, timeOfDay } from './game/gameLogic';
-import type { GameState } from './types';
+import { applyChoice, createInitialState, dismissDaySummary, getDecision, loadGame, navigateToLocation, saveGame, timeOfDay, weekDays } from './game/gameLogic';
+import type { GameState, LocationId } from './types';
 
 export default function App() {
   const [state, setState] = useState<GameState>(() => loadGame());
@@ -27,8 +27,9 @@ export default function App() {
     setState((current) => applyChoice(current, choiceIndex));
   };
 
-  const handleContinueDay = () => {
-    setState((current) => dismissDaySummary(current));
+  const handleNavigate = (location: LocationId) => {
+    setIsDogMenuOpen(false);
+    setState((current) => navigateToLocation(current, location));
   };
 
   if (state.ending && !state.daySummary) {
@@ -36,42 +37,30 @@ export default function App() {
   }
 
   return (
-    <main className={`app-shell mode-${state.mode}`}>
+    <main className="app-shell">
       <header className="top-bar">
-        <div className="hud-tile">
+        <div className="hud-card">
           <span>📅</span>
-          <strong>День {state.day}</strong>
-          <small>Пн</small>
+          <strong>{weekDays[(state.day - 1) % weekDays.length]}</strong>
+          <small>День {state.day}</small>
         </div>
-        <div className="hud-tile">
-          <span>🌤️</span>
+        <div className="hud-card">
+          <span>🕒</span>
           <strong>{timeOfDay[state.timeIndex]}</strong>
-          <small>{state.timeIndex === 3 ? '22:10' : state.timeIndex === 2 ? '18:45' : state.timeIndex === 1 ? '13:20' : '08:15'}</small>
+          <small>{state.timeIndex === 0 ? '08:10' : state.timeIndex === 1 ? '13:30' : state.timeIndex === 2 ? '18:45' : '22:20'}</small>
         </div>
-        <div className="hud-tile">
-          <span>{state.mode === 'walk' ? '🌦️' : '☁️'}</span>
-          <strong>{state.mode === 'walk' ? '+16°' : '+18°'}</strong>
-          <small>{state.mode === 'walk' ? 'Свежо' : 'Облачно'}</small>
-        </div>
-        <div className="money-pill">🦴 {state.money} ₽</div>
-        <button className="round-button" onClick={restart} title="Начать заново">↻</button>
       </header>
 
-      <div className="game-stage">
-        <Scene state={state} decision={decision} onDogClick={() => setIsDogMenuOpen((value) => !value)} />
-        <StatsPanel state={state} />
-        <ActionPanel
-          state={state}
-          decision={decision}
-          isOpen={isDogMenuOpen}
-          onChoose={handleChoice}
-          onRestart={restart}
-          onClose={() => setIsDogMenuOpen(false)}
-        />
-        <LocationMap state={state} />
-      </div>
+      <Scene state={state} decision={decision} onDogClick={() => setIsDogMenuOpen((value) => !value)} />
+      <StatsPanel state={state} />
+      <ActionPanel state={state} decision={decision} isOpen={isDogMenuOpen} onChoose={handleChoice} onClose={() => setIsDogMenuOpen(false)} />
+      <LocationMap state={state} onNavigate={handleNavigate} />
 
-      {state.daySummary && <DaySummary summary={state.daySummary} onContinue={handleContinueDay} />}
+      <button className="reset-button" onClick={restart} aria-label="Начать заново">
+        ⚙️
+      </button>
+
+      {state.daySummary && <DaySummary summary={state.daySummary} onContinue={() => setState((current) => dismissDaySummary(current))} />}
     </main>
   );
 }

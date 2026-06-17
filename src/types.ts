@@ -1,30 +1,14 @@
-export type LocationId = 'home' | 'yard' | 'park' | 'shop' | 'vet' | 'grooming';
+export type LocationId = 'home' | 'park';
 
 export type TimeOfDay = 'Утро' | 'День' | 'Вечер' | 'Ночь';
 
-export type GameMode = 'life' | 'walk';
+export type GameMode = 'home' | 'walk';
 
-export type DogTraitId =
-  | 'vacuum'
-  | 'timid'
-  | 'hyperactive'
-  | 'stubborn'
-  | 'friendly'
-  | 'destroyer'
-  | 'hunter'
-  | 'beggar';
+export type DogPose = 'idle' | 'sit' | 'sleep' | 'curious' | 'happy';
 
-export type StatKey =
-  | 'ownerFatigue'
-  | 'satiety'
-  | 'toilet'
-  | 'mood'
-  | 'health'
-  | 'dirt'
-  | 'obedience'
-  | 'apartment'
-  | 'reputation'
-  | 'trust';
+export type DogTraitId = 'curious' | 'stubborn' | 'timid' | 'brave' | 'vacuum' | 'friendly';
+
+export type StatKey = 'mood' | 'trust' | 'health';
 
 export type Stats = Record<StatKey, number>;
 
@@ -34,64 +18,40 @@ export interface DogTrait {
   description: string;
 }
 
-export interface Goal {
-  id: string;
-  title: string;
-  description: string;
-  done: boolean;
-}
-
-export interface WalkState {
-  step: number;
-  total: number;
-  foundFriend: boolean;
-  learnedRecall: number;
-  contestScore: number;
-  survivedStorm: boolean;
-}
-
 export interface GameState {
   day: number;
   timeIndex: number;
-  money: number;
   location: LocationId;
   mode: GameMode;
   currentDecisionId: string;
-  scenePose: string;
+  dogPose: DogPose;
+  emotion: string;
   stats: Stats;
   traits: DogTraitId[];
-  inventory: {
-    toy: boolean;
-    treats: number;
-  };
   memories: string[];
   dayNotes: string[];
-  goals: Goal[];
-  walk: WalkState;
   daySummary: DaySummaryData | null;
   ending: EndingId | null;
 }
 
 export interface StatChange {
-  money?: number;
   time?: number;
-  toy?: boolean;
-  treats?: number;
   memory?: string;
-  scenePose?: string;
+  dogPose?: DogPose;
+  emotion?: string;
   location?: LocationId;
   mode?: GameMode;
-  startWalk?: boolean;
-  endWalk?: boolean;
+  goHome?: boolean;
+  goPark?: boolean;
   nextDecisionId?: string;
-  goalId?: string;
-  walk?: Partial<WalkState>;
+  addTrait?: DogTraitId;
   stats?: Partial<Stats>;
 }
 
 export interface DecisionChoice {
   title: string;
   text: string;
+  icon: string;
   effect: StatChange;
 }
 
@@ -99,8 +59,10 @@ export interface Decision {
   id: string;
   title: string;
   text: string;
-  scenePose: string;
+  dogPose: DogPose;
+  emotion: string;
   location: LocationId;
+  traits?: DogTraitId[];
   choices: DecisionChoice[];
 }
 
@@ -109,15 +71,9 @@ export interface DaySummaryData {
   title: string;
   notes: string[];
   conditionLines: string[];
-  money: number;
 }
 
-export type EndingId =
-  | 'responsible'
-  | 'happyDogBrokenOwner'
-  | 'districtThreat'
-  | 'minusSofa'
-  | 'legend';
+export type EndingId = 'responsible' | 'bestFriends' | 'chaosWeek' | 'quietCozy' | 'parkLegend';
 
 export interface Ending {
   id: EndingId;
