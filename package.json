@@ -2,7 +2,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "push": "git commit -am 'update' && git push origin main"
   },
   "dependencies": {
     "@vitejs/plugin-react": "latest",

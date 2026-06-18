@@ -2,6 +2,56 @@ import type { Decision, Ending } from '../types';
 
 export const parkEvents: Decision[] = [
   {
+    id: 'park-calm-walk',
+    title: 'Бублик идёт рядом',
+    text: 'Редкий кадр: поводок провис, Бублик не спешит, мир на секунду выглядит управляемым.',
+    dogPose: 'idle',
+    emotion: '🌿',
+    location: 'park',
+    habits: ['calm_leash'],
+    problems: ['pulls_leash'],
+    choices: [
+      {
+        title: 'Похвалить спокойную прогулку',
+        text: 'Отметить момент, пока он не растворился в запахах.',
+        icon: '✓',
+        result: {
+          bublik: 'Бублик услышал похвалу и на пару шагов стал ещё важнее. Поводок остался мягким.',
+          situation: 'Спокойная ходьба получила смысл. Такие мелочи и становятся воспитанием, хотя со стороны это выглядит как человек, разговаривающий с собакой.',
+          thought: 'Иду. Молодец. Все молодцы.',
+        },
+        effect: {
+          stats: { mood: 2, trust: 4 },
+          dogPose: 'idle',
+          emotion: '💛',
+          development: {
+            progress: { calmWalking: 1 },
+          },
+          memory: 'Вы похвалили Бублика за спокойную прогулку рядом.',
+        },
+      },
+      {
+        title: 'Поторопиться',
+        text: 'Ускорить шаг и случайно сделать рывки нормой.',
+        icon: '🏃',
+        result: {
+          bublik: 'Бублик решил, что прогулка перешла в режим “кто первый заметит запах”. Поводок натянулся.',
+          situation: 'Вы дошли быстрее, но Бублик понял неприятный вывод: спешка тоже работает.',
+          thought: 'А, значит, тянуть можно.',
+        },
+        effect: {
+          stats: { mood: 3, trust: -1 },
+          dogPose: 'idle',
+          emotion: '💨',
+          development: {
+            addProblem: 'pulls_leash',
+          },
+          memory: 'Бублик начал тянуть поводок после быстрой прогулки.',
+        },
+      },
+    ],
+  },
+  {
     id: 'park-dog',
     title: 'Навстречу идёт другая собака',
     text: 'Собака на поводке остановилась неподалёку. Бублик смотрит на вас: можно?',
@@ -9,16 +59,27 @@ export const parkEvents: Decision[] = [
     emotion: '🐕',
     location: 'park',
     traits: ['friendly', 'timid'],
+    problems: ['fear_dogs'],
+    habits: ['calm_dogs'],
     choices: [
       {
         title: 'Познакомиться',
         text: 'Дать собакам спокойно понюхаться.',
         icon: '🐕',
+        result: {
+          bublik: 'Бублик сделал осторожный шаг, потом ещё один, а потом решил, что социальная жизнь, возможно, не ошибка.',
+          situation: 'Встреча прошла спокойно. Другая собака ушла дальше, а Бублик ещё пару секунд смотрел ей вслед с важным видом.',
+          thought: 'Я почти победил социальную жизнь.',
+        },
         effect: {
           stats: { mood: 7, trust: 4 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '💛',
           addTrait: 'friendly',
+          development: {
+            progress: { dogGoodSocial: 1 },
+            addAchievement: 'first_calm_dog_intro',
+          },
           memory: 'Бублик познакомился с другой собакой в парке.',
         },
       },
@@ -26,11 +87,39 @@ export const parkEvents: Decision[] = [
         title: 'Обойти стороной',
         text: 'Выбрать спокойную дугу.',
         icon: '🌿',
+        result: {
+          bublik: 'Бублик обернулся на собаку, но пошёл рядом с вами без спора.',
+          situation: 'Вы выбрали безопасную дистанцию. Прогулка не стала подвигом, зато осталась спокойной.',
+          thought: 'Иногда человек выбирает скучно. Иногда это приятно.',
+        },
         effect: {
           stats: { trust: 4, mood: 1 },
           dogPose: 'idle',
           emotion: '🤍',
+          development: {
+            progress: { dogGoodSocial: 1 },
+          },
           memory: 'Вы спокойно обошли другую собаку.',
+        },
+      },
+      {
+        title: 'Сказать “не позорься”',
+        text: 'Попытаться ускорить храбрость словами.',
+        icon: '😐',
+        result: {
+          bublik: 'Бублик прижал уши и сделал вид, что трава внезапно стала очень интересной.',
+          situation: 'Контакт с другой собакой не случился, а между вами повисла короткая неловкость.',
+          thought: 'Предательство пахнет человеком.',
+        },
+        effect: {
+          stats: { mood: -2, trust: -1 },
+          dogPose: 'sit',
+          emotion: '😐',
+          addTrait: 'anxious',
+          development: {
+            progress: { dogBadSocial: 1 },
+          },
+          memory: 'Бублик смутился при встрече с другой собакой.',
         },
       },
     ],
@@ -39,7 +128,7 @@ export const parkEvents: Decision[] = [
     id: 'park-bird',
     title: 'Бублик заметил голубя',
     text: 'Голубь важно ходит по траве. Бублик застыл как маленький охотник.',
-    dogPose: 'curious',
+    dogPose: 'sit',
     emotion: '🐦',
     location: 'park',
     traits: ['curious', 'brave'],
@@ -50,7 +139,7 @@ export const parkEvents: Decision[] = [
         icon: '😄',
         effect: {
           stats: { mood: 9, trust: 1 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '😄',
           addTrait: 'brave',
           memory: 'Бублик радостно погнался за голубем.',
@@ -64,6 +153,9 @@ export const parkEvents: Decision[] = [
           stats: { trust: 6, mood: 1 },
           dogPose: 'sit',
           emotion: '💛',
+          development: {
+            progress: { recallSuccess: 1 },
+          },
           memory: 'Бублик увидел голубя, но вернулся на ваш зов.',
         },
       },
@@ -73,7 +165,7 @@ export const parkEvents: Decision[] = [
     id: 'park-stick',
     title: 'Бублик нашёл палку',
     text: 'Палка явно особенная. Он держит её как трофей.',
-    dogPose: 'happy',
+    dogPose: 'idle',
     emotion: '🪵',
     location: 'park',
     traits: ['curious'],
@@ -84,20 +176,75 @@ export const parkEvents: Decision[] = [
         icon: '🪵',
         effect: {
           stats: { mood: 8, trust: 4 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '😄',
           memory: 'Вы играли с найденной палкой.',
         },
       },
       {
         title: 'Забрать палку',
-        text: 'Разрешить Бублику нести добычу домой.',
+        text: 'Решить, что трофей всё же останется в парке.',
         icon: '🏠',
+        result: {
+          bublik: 'Бублик отпустил палку не сразу. Сначала он уточнил взглядом, точно ли вы понимаете ценность объекта.',
+          situation: 'Палка осталась на дорожке, но Бублик ещё пару раз обернулся. Кажется, эта история не закончена.',
+          thought: 'Палка была хорошая. Человек пока не понял.',
+        },
         effect: {
-          stats: { mood: 5, trust: 2 },
-          dogPose: 'happy',
+          addFlag: 'stick_taken',
+          stats: { mood: -1, trust: 2 },
+          dogPose: 'sit',
           emotion: '🪵',
-          memory: 'Бублик нёс палку домой с видом победителя.',
+          memory: 'Вы забрали палку, и Бублик запомнил место.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'park-stick-memory',
+    title: 'Бублик вернулся к той самой палке',
+    text: 'Он уверенно свернул к месту, где вы оставили палку. Память у него работает избирательно, но отлично.',
+    dogPose: 'idle',
+    emotion: '🪵',
+    location: 'park',
+    requiredFlag: 'stick_taken',
+    traits: ['stubborn', 'curious'],
+    choices: [
+      {
+        title: 'Сыграть с палкой',
+        text: 'Признать, что палка действительно была важна.',
+        icon: '🪵',
+        result: {
+          bublik: 'Бублик схватил палку так, будто всё это время она ждала именно его возвращения.',
+          situation: 'Старая недосказанность превратилась в игру. Бублик явно доволен тем, что вы поняли продолжение истории.',
+          thought: 'Наконец-то человек догнал сюжет.',
+        },
+        effect: {
+          clearFlag: 'stick_taken',
+          stats: { mood: 8, trust: 4 },
+          dogPose: 'idle',
+          emotion: '😄',
+          development: {
+            addAchievement: 'stick_memory',
+          },
+          memory: 'Вы вернулись к той самой палке и всё-таки поиграли.',
+        },
+      },
+      {
+        title: 'Позвать дальше',
+        text: 'Мягко переключить его на прогулку.',
+        icon: '💬',
+        result: {
+          bublik: 'Бублик посмотрел на палку, потом на вас, потом снова на палку. После паузы всё-таки пошёл рядом.',
+          situation: 'Палка осталась легендой парка. Зато Бублик услышал вас и выбрал идти вместе.',
+          thought: 'Я оставляю её здесь. Но не прощаюсь.',
+        },
+        effect: {
+          clearFlag: 'stick_taken',
+          stats: { mood: -1, trust: 5 },
+          dogPose: 'sit',
+          emotion: '💛',
+          memory: 'Бублик оставил знакомую палку и пошёл дальше по вашему зову.',
         },
       },
     ],
@@ -106,7 +253,7 @@ export const parkEvents: Decision[] = [
     id: 'park-cat',
     title: 'На дорожке появилась кошка',
     text: 'Кошка смотрит спокойно. Бублик не уверен, что это законно.',
-    dogPose: 'curious',
+    dogPose: 'sit',
     emotion: '🐈',
     location: 'park',
     traits: ['curious', 'stubborn'],
@@ -139,7 +286,7 @@ export const parkEvents: Decision[] = [
     id: 'park-puddle',
     title: 'Перед Бубликом лужа',
     text: 'Он смотрит на неё так, будто это портал в счастье.',
-    dogPose: 'happy',
+    dogPose: 'idle',
     emotion: '💦',
     location: 'park',
     traits: ['brave', 'stubborn'],
@@ -150,7 +297,7 @@ export const parkEvents: Decision[] = [
         icon: '💦',
         effect: {
           stats: { mood: 10, trust: 2 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '😄',
           addTrait: 'brave',
           memory: 'Бублик прыгнул в лужу и был абсолютно счастлив.',
@@ -197,7 +344,7 @@ export const parkEvents: Decision[] = [
         icon: '🌧️',
         effect: {
           stats: { mood: 5, trust: 2, health: -1 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '🌧️',
           addTrait: 'brave',
           memory: 'Вы немного погуляли под мелким дождём.',
@@ -220,7 +367,7 @@ export const parkEvents: Decision[] = [
         icon: '🤲',
         effect: {
           stats: { mood: 6, trust: 5 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '💛',
           addTrait: 'friendly',
           memory: 'Бублик спокойно познакомился с ребёнком.',
@@ -243,10 +390,12 @@ export const parkEvents: Decision[] = [
     id: 'park-food',
     title: 'На земле что-то съедобное',
     text: 'Бублик заметил это раньше вас. Очень раньше.',
-    dogPose: 'curious',
+    dogPose: 'sit',
     emotion: '🦴',
     location: 'park',
     traits: ['vacuum'],
+    problems: ['picks_food'],
+    habits: ['ignores_ground_food'],
     choices: [
       {
         title: 'Отвести',
@@ -256,6 +405,10 @@ export const parkEvents: Decision[] = [
           stats: { trust: 5, health: 2, mood: -1 },
           dogPose: 'sit',
           emotion: '💛',
+          development: {
+            progress: { foodRedirected: 1 },
+            addAchievement: 'first_ignored_food',
+          },
           memory: 'Вы увели Бублика от подозрительной еды.',
         },
       },
@@ -265,9 +418,12 @@ export const parkEvents: Decision[] = [
         icon: '👃',
         effect: {
           stats: { mood: 4, health: -3, trust: 1 },
-          dogPose: 'curious',
+          dogPose: 'sit',
           emotion: '🤔',
           addTrait: 'vacuum',
+          development: {
+            progress: { foodAllowed: 1 },
+          },
           memory: 'Бублик понюхал сомнительную еду на земле.',
         },
       },
@@ -277,7 +433,7 @@ export const parkEvents: Decision[] = [
     id: 'park-owner',
     title: 'Встретился знакомый собачник',
     text: 'Он машет рукой. Бублик уже понял, что это хороший человек.',
-    dogPose: 'happy',
+    dogPose: 'idle',
     emotion: '👋',
     location: 'park',
     traits: ['friendly'],
@@ -288,7 +444,7 @@ export const parkEvents: Decision[] = [
         icon: '👋',
         effect: {
           stats: { mood: 6, trust: 3 },
-          dogPose: 'happy',
+          dogPose: 'idle',
           emotion: '💛',
           addTrait: 'friendly',
           memory: 'Вы встретили знакомого собачника, и Бублик радостно поздоровался.',
@@ -313,7 +469,7 @@ export const endings: Record<string, Ending> = {
   responsible: {
     id: 'responsible',
     title: 'Ответственный собачник',
-    text: 'Неделя получилась простой и тёплой: дом, парк и Бублик, который всё чаще смотрит на вас перед решением.',
+    text: 'Месяц получился простой и тёплый: дом, парк и Бублик, который всё чаще смотрит на вас перед решением.',
   },
   bestFriends: {
     id: 'bestFriends',
@@ -323,7 +479,7 @@ export const endings: Record<string, Ending> = {
   chaosWeek: {
     id: 'chaosWeek',
     title: 'Хвостом вверх',
-    text: 'Было шумно, смешно и живо. Бублик явно считает неделю удачной.',
+    text: 'Было шумно, смешно и живо. Бублик явно считает этот месяц удачным.',
   },
   quietCozy: {
     id: 'quietCozy',
