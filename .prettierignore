@@ -1,7 +1,7 @@
-node_modules/
-dist/
-output/
-.tsbuild/
+dist
+node_modules
+output
+.tsbuild
 *.tsbuildinfo
 eslint.config.js
 eslint.config.d.ts
@@ -9,4 +9,3 @@ prettier.config.mjs
 prettier.config.d.mts
 vite.config.js
 vite.config.d.ts
-.DS_Store

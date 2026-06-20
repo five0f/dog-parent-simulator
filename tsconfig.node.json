@@ -3,7 +3,10 @@
     "composite": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "allowSyntheticDefaultImports": true
+    "outDir": ".tsbuild/node",
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "tsBuildInfoFile": ".tsbuild/tsconfig.node.tsbuildinfo"
   },
-  "include": ["vite.config.ts"]
+  "include": ["eslint.config.ts", "prettier.config.mts", "vite.config.ts"]
 }

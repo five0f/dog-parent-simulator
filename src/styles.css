@@ -1,43 +1,48 @@
-:root {
+@import 'tailwindcss';
+
+@theme {
   --color-background: #c8bba3;
   --color-surface: #efe0b8;
   --color-surface-secondary: #d8c48f;
-  --color-text-primary: #1f1a16;
-  --color-text-secondary: #6d6255;
+  --color-ink: #1e130d;
+  --color-ink-soft: #5a4434;
+  --color-description: #5a4434;
+  --color-ui-text: #ebd3b4;
   --color-border: #2a211b;
   --color-success: #6f8b4e;
   --color-warning: #e5c75e;
   --color-danger: #b94235;
-  font-family: "Comic Neue", sans-serif;
-  color: var(--color-text-primary);
-  background: var(--color-background);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
+  --font-hand: 'Patrick Hand', 'Comic Sans MS', 'Trebuchet MS', sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  :root {
+    color: var(--color-ink);
+    background: var(--color-background);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
 
-html,
-body,
-#root {
-  width: 100%;
-  min-width: 320px;
-  min-height: 100%;
-  margin: 0;
-}
+  html,
+  body,
+  #root {
+    width: 100%;
+    min-width: 320px;
+    min-height: 100%;
+    margin: 0;
+  }
 
-body {
-  overflow: hidden;
-}
+  body {
+    overflow: hidden;
+  }
 
-button {
-  border: 0;
-  font: inherit;
-}
+  button {
+    border: 0;
+    font: inherit;
+  }
 
-img {
-  -webkit-user-drag: none;
+  img {
+    -webkit-user-drag: none;
+  }
 }

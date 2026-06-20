@@ -1,0 +1,15 @@
+pre-commit:
+  parallel: false
+  jobs:
+    - name: prettier
+      glob: '*.{css,html,js,json,jsx,md,mdx,mjs,mts,cjs,cts,svg,ts,tsx,yaml,yml}'
+      run: npx --no-install prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+
+    - name: eslint
+      glob: '*.{js,jsx,mjs,mts,cjs,cts,ts,tsx}'
+      run: npx --no-install eslint --fix --max-warnings=0 {staged_files}
+      stage_fixed: true
+
+    - name: build
+      run: npm run build
