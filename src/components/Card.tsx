@@ -1,7 +1,5 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
-import cardLarge from '../assets/ui/cards/card-large.png';
-import cardMedium from '../assets/ui/cards/card-medium.png';
-import cardSmall from '../assets/ui/cards/card-small.png';
+import dialogPanel from '../assets/ui/cards/dialog-panel.png';
 
 type CardVariant = 'large' | 'medium' | 'small';
 
@@ -11,10 +9,10 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   contentStyle?: CSSProperties;
 }
 
-const cardAssets: Record<CardVariant, { src: string; width: number; height: number; padding: string }> = {
-  large: { src: cardLarge, width: 400, height: 300, padding: '28px 30px' },
-  medium: { src: cardMedium, width: 320, height: 223, padding: '22px 24px' },
-  small: { src: cardSmall, width: 280, height: 105, padding: '16px 20px' },
+const cardAssets: Record<CardVariant, { width: number; height: number; padding: string }> = {
+  large: { width: 620, height: 360, padding: '32px 38px' },
+  medium: { width: 420, height: 260, padding: '28px 32px' },
+  small: { width: 300, height: 160, padding: '22px 26px' },
 };
 
 export default function Card({ variant = 'medium', children, style, contentStyle, ...props }: CardProps) {
@@ -28,9 +26,12 @@ export default function Card({ variant = 'medium', children, style, contentStyle
         width: asset.width,
         maxWidth: '100%',
         aspectRatio: `${asset.width} / ${asset.height}`,
-        backgroundImage: `url(${asset.src})`,
-        backgroundRepeat: 'no-repeat',
-        backgroundSize: '100% 100%',
+        background: 'transparent',
+        borderStyle: 'solid',
+        borderWidth: 42,
+        borderImageSource: `url(${dialogPanel})`,
+        borderImageSlice: '56 fill',
+        borderImageWidth: 42,
         ...style,
       }}
     >

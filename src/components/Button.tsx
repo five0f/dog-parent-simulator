@@ -1,7 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import buttonNegative from '../assets/ui/buttons/button-negative.png';
-import buttonNeutral from '../assets/ui/buttons/button-neutral.png';
-import buttonPositive from '../assets/ui/buttons/button-positive.png';
+import buttonPanel from '../assets/ui/cards/button.png';
 
 type ButtonVariant = 'positive' | 'neutral' | 'negative';
 
@@ -10,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-const buttonAssets: Record<ButtonVariant, string> = {
-  positive: buttonPositive,
-  neutral: buttonNeutral,
-  negative: buttonNegative,
+const buttonColors: Record<ButtonVariant, string> = {
+  positive: '#6d2a21',
+  neutral: '#2b1b12',
+  negative: '#8a3a25',
 };
 
 export default function Button({ variant = 'neutral', children, style, type = 'button', ...props }: ButtonProps) {
@@ -27,13 +25,13 @@ export default function Button({ variant = 'neutral', children, style, type = 'b
         display: 'inline-grid',
         placeItems: 'center',
         padding: '12px 28px',
-        color: 'inherit',
+        color: buttonColors[variant],
         font: 'inherit',
         fontWeight: 900,
         lineHeight: 1,
         textAlign: 'center',
         backgroundColor: 'transparent',
-        backgroundImage: `url(${buttonAssets[variant]})`,
+        backgroundImage: `url(${buttonPanel})`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: '100% 100%',
         border: 0,

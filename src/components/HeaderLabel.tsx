@@ -1,5 +1,5 @@
 import type { CSSProperties, HTMLAttributes, ReactNode } from 'react';
-import headerLabel from '../assets/ui/labels/header-label.png';
+import buttonPanel from '../assets/ui/cards/button.png';
 
 interface HeaderLabelProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
@@ -17,7 +17,7 @@ export default function HeaderLabel({ children, style, contentStyle, ...props }:
         aspectRatio: '465 / 160',
         display: 'grid',
         placeItems: 'center',
-        backgroundImage: `url(${headerLabel})`,
+        backgroundImage: `url(${buttonPanel})`,
         backgroundRepeat: 'no-repeat',
         backgroundSize: '100% 100%',
         ...style,

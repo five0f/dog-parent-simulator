@@ -8,7 +8,7 @@
   --color-success: #6f8b4e;
   --color-warning: #e5c75e;
   --color-danger: #b94235;
-  font-family: "Patrick Hand", "Comic Sans MS", "Trebuchet MS", sans-serif;
+  font-family: "Comic Neue", sans-serif;
   color: var(--color-text-primary);
   background: var(--color-background);
   font-synthesis: none;

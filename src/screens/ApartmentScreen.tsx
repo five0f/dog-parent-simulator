@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useState } from 'react';
 import dogHappy from '../assets/dog/dog-happy.png';
 import dogIdle from '../assets/dog/dog-idle.png';
 import dogLeashPull from '../assets/dog/dog-leash-pull.png';
@@ -7,27 +7,35 @@ import dogSleep from '../assets/dog/dog-sleep.png';
 import dogSniff from '../assets/dog/dog-sniff.png';
 import dogSock from '../assets/dog/dog-sock.png';
 import dogStressed from '../assets/dog/dog-stressed.png';
+import homeBackground from '../assets/backgrounds/home.png';
 import humanIdle from '../assets/human/human-idle.png';
-import homeBackground from '../assets/locations/home.png';
-import parkBackground from '../assets/locations/park.png';
+import humanParkIdle from '../assets/human/human-idle-park.png';
+import parkBackground from '../assets/backgrounds/park.png';
 import breadAsset from '../assets/park/bread.png';
+import pigeonFlyAsset from '../assets/park/pigeon_fly.png';
+import pigeonIdleAsset from '../assets/park/pigeon_idle.png';
+import pigeonPeckAsset from '../assets/park/pigeon_peck.png';
 import stickAsset from '../assets/park/stick.png';
 import tennisBallAsset from '../assets/park/tennis_ball.png';
 import trashBagAsset from '../assets/park/trash_bag.png';
-import pigeonFlyAsset from '../assets/pigeon/pigeon_fly.png';
-import pigeonIdleAsset from '../assets/pigeon/pigeon_idle.png';
-import pigeonPeckAsset from '../assets/pigeon/pigeon_peck.png';
-import goalBadge from '../assets/ui/goal_badge.png';
-import traitBadge from '../assets/ui/trait_badge.png';
-import { Button, Card, DogAvatar, DogStats, HeaderLabel, SkillList, type DogStatItem, type IconName } from '../components/ui';
+import dogAvatar from '../assets/ui/avatars/dog-avatar.png';
+import buttonPanel from '../assets/ui/cards/button.png';
+import choiceCard from '../assets/ui/cards/choice-card.png';
+import dialogPanel from '../assets/ui/cards/dialog-panel.png';
+import heartEmpty from '../assets/ui/icons/heart-empty.png';
+import heartFull from '../assets/ui/icons/heart-full.png';
+import iconDay from '../assets/ui/icons/icon-day.png';
+import iconDog from '../assets/ui/icons/icon-dog.png';
+import iconMoon from '../assets/ui/icons/icon-moon.png';
+import iconSun from '../assets/ui/icons/icon-sun.png';
 import { useApartmentGame } from '../game/useApartmentGame';
 import {
   getDaySummary,
-  getGoalsTheme,
-  getLocationTab,
   getMeters,
   getSkillList,
   getUnlockedTraits,
+  type ChoiceVariant,
+  type EventChoice,
   type DogPose,
   type DogStatId,
   type GoalStatus,
@@ -35,6 +43,16 @@ import {
   type SceneObjectId,
 } from '../game/apartmentGame';
 import './apartmentScreen.css';
+
+type ActivePanel = 'day' | 'dog' | null;
+
+type GameScreenStyle = CSSProperties & {
+  '--choice-card': string;
+  '--dialog-panel': string;
+  '--heart-empty': string;
+  '--heart-full': string;
+  '--top-button': string;
+};
 
 const dogImages: Record<DogPose, string> = {
   happy: dogHappy,
@@ -63,24 +81,20 @@ const sceneObjectImages: Record<SceneObjectId, string> = {
   trashBag: trashBagAsset,
 };
 
-const meterIcons: Record<DogStatId, IconName> = {
-  trust: 'trust',
-  energy: 'energy',
-  stress: 'stress',
-  hunger: 'food',
-  walkNeed: 'walk',
-  playNeed: 'play',
+const choiceIcons: Record<ChoiceVariant, string> = {
+  negative: '✋',
+  neutral: '↔',
+  positive: '♥',
 };
 
-function getTrustHearts(value: number) {
-  const filled = Math.max(0, Math.min(5, Math.round(value / 20)));
-  return `${'❤️'.repeat(filled)}${'🤍'.repeat(5 - filled)}`;
-}
+const choiceOrder: Record<ChoiceVariant, number> = {
+  positive: 0,
+  neutral: 1,
+  negative: 2,
+};
 
-function getMood(value: number) {
-  if (value >= 75) return '😊';
-  if (value >= 45) return '🙂';
-  return '😟';
+function getTrustHeartCount(value: number) {
+  return Math.max(0, Math.min(5, Math.round(value / 20)));
 }
 
 function getStatStateText(id: DogStatId, value: number) {
@@ -126,268 +140,343 @@ function getGoalStatusLabel(status: GoalStatus) {
   return 'в процессе';
 }
 
-export default function ApartmentScreen() {
-  const { choose, continueGame, event, nextDay, reset, state } = useApartmentGame();
-  const [showTechnicalChanges, setShowTechnicalChanges] = useState(false);
-  const activeLocation = getLocationTab(state.location);
-  const daySummary = getDaySummary(state);
-  const trust = state.stats.trust;
-  const dogStats: DogStatItem[] = getMeters(state).map((meter) => ({
-    icon: meterIcons[meter.id],
-    stateText: getStatStateText(meter.id, meter.value),
-    title: meter.title,
-    value: meter.value,
-  }));
-  const skills = getSkillList(state);
-  const visibleDogPose = state.pendingResult?.dogPose ?? event.dogPose;
-  const visibleSceneObjects = state.pendingResult?.sceneObjects ?? event.sceneObjects;
-  const dogImage = dogImages[visibleDogPose];
-  const background = locationBackgrounds[state.location];
-  const unlockedTraits = getUnlockedTraits(state);
-  const isChoiceLocked = state.phase !== 'event';
+function getChoiceCopy(choice: EventChoice, eventId: string) {
+  if (eventId.includes('sock')) {
+    if (choice.variant === 'positive') {
+      return { description: 'Бублик будет рад', label: 'Похвалить' };
+    }
 
-  useEffect(() => {
-    setShowTechnicalChanges(false);
-  }, [state.pendingResult?.choiceId]);
+    if (choice.variant === 'neutral') {
+      return { description: 'Поменять носок на вкусняшку', label: 'Обменять' };
+    }
+
+    return { description: 'Просто забрать носок', label: 'Забрать' };
+  }
+
+  if (choice.variant === 'positive') return { description: 'Мягко и с доверием', label: choice.label };
+  if (choice.variant === 'negative') return { description: 'Быстро, но рискованно', label: choice.label };
+  return { description: 'Посмотреть, что будет', label: choice.label };
+}
+
+function getDisplayTimeLabel(location: LocationId, timeLabel: string) {
+  if (location === 'park') return 'День';
+  if (location === 'home_after_walk') return 'Вечер';
+  return timeLabel;
+}
+
+function getResultCopy(resultText: string, storyChanges: string[]) {
+  const [firstSentence, ...restSentences] = resultText.split(/(?<=\.)\s+/);
+  const subtitle = restSentences.join(' ') || storyChanges[0] || '';
+
+  return {
+    subtitle,
+    title: firstSentence || resultText,
+  };
+}
+
+function getGoalDisplayText(id: string) {
+  if (id === 'calmMorning') {
+    return {
+      description: 'Помочь Бублику спокойно начать день.',
+      title: 'Спокойное утро',
+    };
+  }
+
+  if (id === 'keepTrust') {
+    return {
+      description: 'Не кричать и сохранять контакт.',
+      title: 'Сохранить доверие',
+    };
+  }
+
+  if (id === 'apartmentSafe') {
+    return {
+      description: 'Не дать квартире стать зоной бедствия.',
+      title: 'Без происшествий дома',
+    };
+  }
+
+  return {
+    description: 'Погулять без стресса.',
+    title: 'Спокойная прогулка',
+  };
+}
+
+function getModalJournal(stateJournal: string[]) {
+  if (stateJournal.length) return stateJournal.slice(-3);
+
+  return ['Бублик принёс носок', 'Ты обменял носок на игрушку', 'Бублик понял, что вещи можно менять'];
+}
+
+function getModalConsequences(stateJournal: string[]) {
+  if (!stateJournal.length) {
+    return ['Бублик стал спокойнее', 'Доверие сохранилось', 'Стресс не вырос'];
+  }
+
+  return ['История дня уже меняется', 'Бублик запоминает твои решения', 'Последствия проявятся в следующих ситуациях'];
+}
+
+function TrustHearts({ value }: { value: number }) {
+  const filled = getTrustHeartCount(value);
 
   return (
-    <main className="apartment-screen" aria-label="Симулятор собачника" data-location={state.location}>
-      <img className="apartment-screen__background" src={background} alt="" aria-hidden="true" />
+    <div className="trust-hearts" aria-label={`Доверие: ${filled} из 5`}>
+      {Array.from({ length: 5 }, (_, index) => (
+        <span aria-hidden="true" className={index < filled ? 'trust-heart trust-heart--full' : 'trust-heart trust-heart--empty'} key={index} />
+      ))}
+    </div>
+  );
+}
 
-      <div className="apartment-screen__top">
-        <HeaderLabel className="apartment-screen__time">
-          {state.timeLabel}, день {state.day}
-        </HeaderLabel>
-        <div className="apartment-screen__locations" aria-label="Локации">
-          <Button aria-pressed={activeLocation === 'home'} variant={activeLocation === 'home' ? 'positive' : 'neutral'}>
-            Дом
-          </Button>
-          <Button aria-pressed={activeLocation === 'park'} variant={activeLocation === 'park' ? 'positive' : 'neutral'}>
-            Парк
-          </Button>
-        </div>
-      </div>
+export default function ApartmentScreen() {
+  const { choose, continueGame, event, nextDay, reset, state } = useApartmentGame();
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
+  const daySummary = getDaySummary(state);
+  const visibleDogPose = state.pendingResult?.dogPose ?? event.dogPose;
+  const visibleSceneObjects = state.pendingResult?.sceneObjects ?? event.sceneObjects;
+  const background = locationBackgrounds[state.location];
+  const humanImage = state.location === 'park' ? humanParkIdle : humanIdle;
+  const displayTimeLabel = getDisplayTimeLabel(state.location, state.timeLabel);
+  const isNight = displayTimeLabel === 'Вечер' || displayTimeLabel === 'Ночь';
+  const unlockedTraits = getUnlockedTraits(state);
+  const meters = getMeters(state);
+  const skills = getSkillList(state);
+  const resultCopy = state.pendingResult ? getResultCopy(state.pendingResult.resultText, state.pendingResult.storyChanges) : null;
+  const screenStyle = useMemo<GameScreenStyle>(
+    () => ({
+      '--choice-card': `url(${choiceCard})`,
+      '--dialog-panel': `url(${dialogPanel})`,
+      '--heart-empty': `url(${heartEmpty})`,
+      '--heart-full': `url(${heartFull})`,
+      '--top-button': `url(${buttonPanel})`,
+    }),
+    [],
+  );
 
-      <section className="apartment-scene" aria-label={activeLocation === 'home' ? 'Квартира' : 'Парк'}>
-        <img className="apartment-scene__human" src={humanIdle} alt="Хозяин" />
+  const eventTitle = state.phase === 'daySummary' ? daySummary.title : resultCopy?.title ?? event.title;
+  const eventSubtitle =
+    state.phase === 'daySummary'
+      ? daySummary.storyLines.slice(0, 2).join(' ')
+      : state.pendingResult
+        ? resultCopy?.subtitle
+        : event.description;
+
+  useEffect(() => {
+    if (!activePanel) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActivePanel(null);
+    };
+
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [activePanel]);
+
+  return (
+    <main className="apartment-screen" aria-label="Симулятор собачника" data-location={state.location} style={screenStyle}>
+      <img className="scene-background" src={background} alt="" aria-hidden="true" />
+
+      <section className="scene-layer" aria-label={state.location === 'park' ? 'Парк' : 'Квартира'}>
+        <img className="scene-human" src={humanImage} alt="Хозяин" />
         {visibleSceneObjects.map((objectId) => (
-          <img className={`apartment-scene__object apartment-scene__object--${objectId}`} src={sceneObjectImages[objectId]} alt="" aria-hidden="true" key={objectId} />
+          <img className={`scene-object scene-object--${objectId}`} src={sceneObjectImages[objectId]} alt="" aria-hidden="true" key={objectId} />
         ))}
-        <img className={`apartment-scene__dog apartment-scene__dog--${visibleDogPose}`} src={dogImage} alt="Бублик" />
+        <img className={`scene-dog scene-dog--${visibleDogPose}`} src={dogImages[visibleDogPose]} alt="Бублик" />
       </section>
 
-      <aside className="apartment-left" aria-label="Бублик">
-        <Card
-          variant="small"
-          className="apartment-card apartment-card--dog"
-          style={{ width: 'var(--side-card-width)', aspectRatio: '330 / 120' }}
-          contentStyle={{ display: 'grid', gridTemplateColumns: 'var(--avatar-size) 1fr', alignItems: 'center', gap: '10px', padding: '12px 18px' }}
-        >
-          <DogAvatar src={dogIdle} alt="Бублик" className="apartment-dog-avatar" imageStyle={{ transform: 'scale(1.22) translateY(3%)' }} />
-          <div className="apartment-dog-copy">
-            <h1>Бублик</h1>
-            <p>4 месяца</p>
-            <p>Настроение: {getMood(trust)}</p>
-            <p>Доверие: {getTrustHearts(trust)}</p>
-          </div>
-        </Card>
+      <header className="top-dog-hud" aria-label="Бублик">
+        <img className="dog-avatar" src={dogAvatar} alt="Бублик" />
+        <div className="top-dog-info">
+          <div className="dog-name">Бублик</div>
+          <TrustHearts value={state.stats.trust} />
+        </div>
+      </header>
 
-        <Card
-          variant="medium"
-          className="apartment-card apartment-card--state"
-          style={{ width: 'var(--side-card-width)', aspectRatio: '330 / 300' }}
-          contentStyle={{ display: 'grid', alignContent: 'start', gap: '8px', padding: '16px 20px' }}
-        >
-          <HeaderLabel className="apartment-card__label">Состояние</HeaderLabel>
-          <DogStats items={dogStats} />
-        </Card>
+      <div className="day-time-label" aria-label={`День ${state.day}, ${displayTimeLabel}`}>
+        <span>
+          День {state.day}
+          <span className="separator">•</span>
+          {displayTimeLabel}
+        </span>
+        <img src={isNight ? iconMoon : iconSun} alt="" aria-hidden="true" />
+      </div>
 
-        <Card
-          variant="medium"
-          className="apartment-card apartment-card--skills"
-          style={{ width: 'var(--side-card-width)', aspectRatio: '330 / 210' }}
-          contentStyle={{ display: 'grid', alignContent: 'start', gap: '9px', padding: '16px 20px' }}
-        >
-          <HeaderLabel className="apartment-card__label">Навыки</HeaderLabel>
-          <SkillList items={skills} />
-        </Card>
+      <nav className="top-menu" aria-label="Меню">
+        <button className="top-menu-button" type="button" onClick={() => setActivePanel('day')}>
+          <img src={iconDay} alt="" aria-hidden="true" />
+          <span>День</span>
+        </button>
+        <button className="top-menu-button" type="button" onClick={() => setActivePanel('dog')}>
+          <img src={iconDog} alt="" aria-hidden="true" />
+          <span>Бублик</span>
+        </button>
+      </nav>
 
-        <Card
-          variant="medium"
-          className="apartment-card apartment-card--traits"
-          style={{ width: 'var(--side-card-width)', aspectRatio: '330 / 178' }}
-          contentStyle={{ display: 'grid', alignContent: 'start', gap: '9px', padding: '16px 20px' }}
-        >
-          <HeaderLabel className="apartment-card__label">Характер</HeaderLabel>
-          {unlockedTraits.length ? (
-            <ul className="apartment-traits">
-              {unlockedTraits.map((trait) => (
-                <li className="apartment-trait-badge" key={trait.id} style={{ backgroundImage: `url(${traitBadge})` }} title={trait.description}>
-                  <span>{trait.title}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="apartment-traits__empty">Характер Бублика ещё формируется.</p>
-          )}
-        </Card>
-      </aside>
+      <section className="event-card" aria-label={state.pendingResult ? 'Результат выбора' : 'Событие'}>
+        <h1 className="event-title">{eventTitle}</h1>
+        {eventSubtitle && <p className="event-subtitle">{eventSubtitle}</p>}
+      </section>
 
-      <aside className="apartment-right" aria-label="Цели дня">
-        <Card
-          variant="medium"
-          className="apartment-card apartment-card--goals"
-          style={{ width: 'var(--side-card-width)', aspectRatio: '330 / 408' }}
-          contentStyle={{ display: 'grid', alignContent: 'start', gap: '9px', padding: '17px 21px' }}
-        >
-          <HeaderLabel className="apartment-card__label">Цели дня</HeaderLabel>
-          <p className="apartment-goals__theme">{getGoalsTheme(state)}</p>
-          <ul className="apartment-goals">
-            {state.goals.map((goal) => (
-              <li className={`apartment-goals__item apartment-goals__item--${goal.status.replace('_', '-')}`} key={goal.id} style={{ backgroundImage: `url(${goalBadge})` }}>
-                <span className="apartment-goals__status">{getGoalStatusLabel(goal.status)}</span>
-                <span className="apartment-goals__label">{goal.label}</span>
-                <small>{goal.reason}</small>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      </aside>
+      {state.phase === 'event' && (
+        <section className="choice-row" aria-label="Варианты действий">
+          {[...event.choices]
+            .sort((left, right) => choiceOrder[left.variant] - choiceOrder[right.variant])
+            .map((choice) => {
+              const choiceCopy = getChoiceCopy(choice, event.id);
 
-      {state.phase !== 'daySummary' && (
-        <section className="apartment-event" aria-label="Событие">
-          <Card
-            variant="medium"
-            className="apartment-card apartment-card--event"
-            style={{ width: 'var(--event-card-width)', aspectRatio: '440 / 152' }}
-            contentStyle={{ display: 'grid', alignContent: 'center', justifyItems: 'center', gap: '8px', padding: '18px 28px' }}
-          >
-            <HeaderLabel className="apartment-card__label">Событие</HeaderLabel>
-            <h2>{event.title}</h2>
-            <p>{event.description}</p>
-          </Card>
+              return (
+                <button className={`choice-card choice-${choice.variant}`} key={choice.id} type="button" onClick={() => choose(choice.id)}>
+                  <span className="choice-main">
+                    <span className="choice-icon" aria-hidden="true">
+                      {choiceIcons[choice.variant]}
+                    </span>
+                    <span className="choice-title">{choiceCopy.label}</span>
+                  </span>
+                  <span className="choice-description">{choiceCopy.description}</span>
+                </button>
+              );
+            })}
         </section>
       )}
 
-      {state.phase !== 'daySummary' && (
-        <section className="apartment-actions" aria-label={state.pendingResult ? 'Результат выбора' : 'Что делать'}>
-        <Card
-          variant="large"
-          className={state.pendingResult ? 'apartment-card apartment-card--actions apartment-card--actions-result' : 'apartment-card apartment-card--actions'}
-          style={{ width: 'var(--action-card-width)', aspectRatio: state.pendingResult ? '760 / 350' : '760 / 168' }}
-          contentStyle={{ display: 'grid', alignContent: 'center', justifyItems: 'center', gap: '11px', padding: '20px 28px' }}
-        >
-          {state.pendingResult ? (
-            <>
-              <HeaderLabel className="apartment-card__label">Результат</HeaderLabel>
-              <p className="apartment-result-text">{state.pendingResult.resultText}</p>
-              <div className="apartment-story-changes">
-                <h3>Что изменилось</h3>
-                <ul>
-                  {state.pendingResult.storyChanges.map((change) => (
-                    <li key={change}>{change}</li>
-                  ))}
-                </ul>
-              </div>
-              <Button className="apartment-technical-toggle" variant="neutral" onClick={() => setShowTechnicalChanges((isShown) => !isShown)}>
-                {showTechnicalChanges ? 'Скрыть цифры' : 'Показать цифры'}
-              </Button>
-              {showTechnicalChanges && (
-                <ul className="apartment-change-list apartment-change-list--technical">
-                  {(state.pendingResult.changes.length ? state.pendingResult.changes : ['Без числовых изменений']).map((change) => (
-                    <li key={change}>{change}</li>
-                  ))}
-                </ul>
-              )}
-              <Button className="apartment-next" variant="positive" onClick={continueGame}>
-                Дальше
-              </Button>
-            </>
-          ) : (
-            <>
-              <HeaderLabel className="apartment-card__label">Что делать?</HeaderLabel>
-              <div className="apartment-actions__buttons">
-                {event.choices.map((choice) => (
-                  <Button className="apartment-choice" disabled={isChoiceLocked} key={choice.id} variant={choice.variant} onClick={() => choose(choice.id)}>
-                    {choice.label}
-                  </Button>
-                ))}
-              </div>
-            </>
-          )}
-        </Card>
+      {state.phase === 'result' && (
+        <section className="choice-row choice-row--single" aria-label="Продолжить">
+          <button className={`choice-card choice-${state.pendingResult?.variant ?? 'positive'}`} type="button" onClick={continueGame}>
+            <span className="choice-main">
+              <span className="choice-icon" aria-hidden="true">
+                →
+              </span>
+              <span className="choice-title">Дальше</span>
+            </span>
+            <span className="choice-description">{state.pendingResult?.completeDay ? 'Посмотреть итоги дня' : 'К следующей ситуации'}</span>
+          </button>
         </section>
       )}
 
       {state.phase === 'daySummary' && (
-        <section className="apartment-summary" aria-label="Итоги дня">
-          <Card
-            variant="large"
-            className="apartment-card apartment-card--summary"
-            style={{ width: 'var(--summary-card-width)', aspectRatio: '760 / 640' }}
-            contentStyle={{ display: 'grid', alignContent: 'start', gap: '12px', padding: '26px 34px' }}
-          >
-            <HeaderLabel className="apartment-card__label">{daySummary.title}</HeaderLabel>
-            <div className="apartment-summary__grid">
-              <section>
-                <h3>Сегодня Бублик</h3>
-                <ul>
-                  {daySummary.storyLines.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </section>
-              <section>
-                <h3>Что закрепилось</h3>
-                <ul>
-                  {daySummary.reinforcedLines.map((line) => (
-                    <li key={line}>{line}</li>
-                  ))}
-                </ul>
-              </section>
-              <section>
-                <h3>Новые черты</h3>
-                {daySummary.newTraits.length ? (
-                  <ul className="apartment-summary__trait-list">
-                    {daySummary.newTraits.map((trait) => (
-                      <li className="apartment-trait-badge" key={trait.id} style={{ backgroundImage: `url(${traitBadge})` }} title={trait.description}>
-                        <span>{trait.title}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Новых черт пока нет. Бублик ещё присматривается к жизни.</p>
-                )}
-              </section>
-              <section>
-                <h3>Цели дня</h3>
-                <ul className="apartment-summary__goal-list">
-                  {daySummary.goalSummaries.map((goal) => (
-                    <li className={`apartment-summary__goal apartment-summary__goal--${goal.status.replace('_', '-')}`} key={goal.label} style={{ backgroundImage: `url(${goalBadge})` }}>
-                      <strong>{goal.label}</strong>
-                      <span>{getGoalStatusLabel(goal.status)}</span>
-                      <small>{goal.explanation}</small>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
-            <div className="apartment-summary__buttons">
-              <Button variant="positive" onClick={nextDay}>
-                Начать следующий день
-              </Button>
-              <Button variant="neutral" onClick={reset}>
-                Начать заново
-              </Button>
-            </div>
-          </Card>
+        <section className="choice-row choice-row--summary" aria-label="Итоги дня">
+          <button className="choice-card choice-positive" type="button" onClick={nextDay}>
+            <span className="choice-main">
+              <span className="choice-icon" aria-hidden="true">
+                ☀
+              </span>
+              <span className="choice-title">Следующий день</span>
+            </span>
+            <span className="choice-description">Бублик проснётся другим</span>
+          </button>
+          <button className="choice-card choice-neutral" type="button" onClick={reset}>
+            <span className="choice-main">
+              <span className="choice-icon" aria-hidden="true">
+                ↺
+              </span>
+              <span className="choice-title">Начать заново</span>
+            </span>
+            <span className="choice-description">Вернуться к первому утру</span>
+          </button>
         </section>
       )}
 
-      {state.phase !== 'daySummary' && (
-        <button className="apartment-reset" type="button" onClick={reset}>
-          Начать заново
-        </button>
+      {activePanel && (
+        <div className="modal-backdrop" onClick={() => setActivePanel(null)}>
+          <aside className={`side-modal side-modal--${activePanel}`} role="dialog" aria-modal="true" aria-labelledby={`${activePanel}-modal-title`} onClick={(event) => event.stopPropagation()}>
+            {activePanel === 'day' ? (
+              <>
+                <h2 id="day-modal-title">
+                  День {state.day} • {displayTimeLabel}
+                </h2>
+                <p className="modal-kicker">Утро без катастроф</p>
+                <section className="modal-section">
+                  <h3>Цели дня</h3>
+                  <ul className="goal-list">
+                    {state.goals.map((goal) => {
+                      const displayGoal = getGoalDisplayText(goal.id);
+
+                      return (
+                        <li className={`goal-item goal-item--${goal.status.replace('_', '-')}`} key={goal.id}>
+                          <strong>{displayGoal.title}</strong>
+                          <span>Статус: {getGoalStatusLabel(goal.status)}</span>
+                          <small>{displayGoal.description}</small>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+                <section className="modal-section">
+                  <h3>Журнал событий</h3>
+                  <ul className="journal-list">
+                    {getModalJournal(state.journal).map((entry, index) => (
+                      <li key={`${entry}-${index}`}>{entry}</li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="modal-section">
+                  <h3>Последствия</h3>
+                  <ul className="journal-list">
+                    {getModalConsequences(state.journal).map((entry, index) => (
+                      <li key={`${entry}-${index}`}>{entry}</li>
+                    ))}
+                  </ul>
+                </section>
+                <button className="modal-action" type="button" onClick={() => setActivePanel(null)}>
+                  Закрыть
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="dog-profile-head">
+                  <img src={dogAvatar} alt="Бублик" />
+                  <div>
+                    <h2 id="dog-modal-title">Бублик</h2>
+                    <p>4 месяца</p>
+                    <TrustHearts value={state.stats.trust} />
+                  </div>
+                </div>
+                <section className="modal-section">
+                  <h3>Состояние</h3>
+                  <ul className="modal-stat-list">
+                    {meters.map((meter) => (
+                      <li key={meter.id}>
+                        <strong>{meter.title}</strong>
+                        <span>{getStatStateText(meter.id, meter.value)}</span>
+                        <small>{meter.value}/100</small>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="modal-section">
+                  <h3>Навыки</h3>
+                  <ul className="modal-stat-list modal-stat-list--skills">
+                    {skills.map((skill) => (
+                      <li key={skill.id}>
+                        <strong>{skill.title}</strong>
+                        <span>{skill.value >= 50 ? 'уверенно' : skill.value >= 20 ? 'учится' : 'пока сложно'}</span>
+                        <small>{skill.value}/100</small>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="modal-section">
+                  <h3>Черты характера</h3>
+                  <ul className="trait-list">
+                    <li>Любитель носков</li>
+                    <li>Липучка</li>
+                    <li>Спокойный пёс</li>
+                    {unlockedTraits
+                      .filter((trait) => !['Любитель носков', 'Липучка', 'Спокойный пёс'].includes(trait.title))
+                      .map((trait) => (
+                        <li key={trait.id} title={trait.description}>
+                          {trait.title}
+                        </li>
+                      ))}
+                  </ul>
+                </section>
+                <button className="modal-action" type="button" onClick={() => setActivePanel(null)}>
+                  Закрыть
+                </button>
+              </>
+            )}
+          </aside>
+        </div>
       )}
     </main>
   );

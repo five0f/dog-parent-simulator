@@ -1662,7 +1662,7 @@ function getResultDogPose(variant: ChoiceVariant): DogPose {
 
 function getTimeLabelForLocation(location: LocationId) {
   if (location === 'park') return 'Прогулка';
-  if (location === 'home_after_walk') return 'После прогулки';
+  if (location === 'home_after_walk') return 'Вечер';
   return 'Утро';
 }
 
