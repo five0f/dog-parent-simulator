@@ -1,36 +1,11 @@
-import type { ReactNode } from 'react';
-
-import { cn } from '../../lib/class-names';
 import { choiceIcons, getChoiceText } from '../presentation/choice-options';
 import { type ChoiceVariant, choiceVariants, type EventChoice } from '../types';
 import { ChoiceCard } from './choice-card';
+import { actionBarClassName } from './ui-classes';
 
-const actionBarBaseClassName =
-  'absolute bottom-11.25 left-1/2 z-30 flex -translate-x-1/2 justify-center max-[900px]:inset-x-0 max-[900px]:bottom-4.5 max-[900px]:w-full max-[900px]:translate-x-0 max-[900px]:[scroll-snap-type:x_proximity] max-[900px]:gap-3 max-[900px]:overflow-x-auto max-[900px]:px-4 max-[900px]:pb-1';
-
-function ActionBar({
-  ariaLabel,
-  children,
-  collapseWide = false,
-  desktopGap = 'gap-3.75',
-  mobileAlign = 'center',
-}: {
-  ariaLabel: string;
-  children: ReactNode;
-  collapseWide?: boolean;
-  desktopGap?: string;
-  mobileAlign?: 'center' | 'start';
-}) {
+function ActionBar({ ariaLabel, children }: { ariaLabel: string; children: React.ReactNode }) {
   return (
-    <section
-      className={cn(
-        actionBarBaseClassName,
-        desktopGap,
-        collapseWide && 'max-[1200px]:gap-0',
-        mobileAlign === 'start' ? 'max-[900px]:justify-start' : 'max-[900px]:justify-center'
-      )}
-      aria-label={ariaLabel}
-    >
+    <section className={actionBarClassName} aria-label={ariaLabel}>
       {children}
     </section>
   );
@@ -48,7 +23,7 @@ export function ChoiceActionBar({
   );
 
   return (
-    <ActionBar ariaLabel='Варианты действий' collapseWide mobileAlign='start'>
+    <ActionBar ariaLabel='Варианты действий'>
       {orderedChoices.map(choice => {
         const choiceText = getChoiceText(choice);
 
@@ -102,7 +77,7 @@ export function DaySummaryActionBar({
   onReset: () => void;
 }) {
   return (
-    <ActionBar ariaLabel='Итоги дня' desktopGap='gap-0'>
+    <ActionBar ariaLabel='Итоги дня'>
       {hasNextDay && (
         <ChoiceCard
           description='Бублик проснётся другим'

@@ -6,40 +6,34 @@ import {
   getModalJournal,
 } from '../../presentation/info-panel-text';
 import type { DayGoal, GameState, GoalStatus } from '../../types';
-import { CloseButton } from './close-button';
+import { modalBodyTextClassName, modalListClassName, modalTitleClassName } from '../ui-classes';
 import { goalItemClassName } from './panel-classes';
 import { PanelSection } from './panel-section';
 
 export function DayPanel({
   displayTimeLabel,
-  onClose,
   state,
 }: {
   displayTimeLabel: string;
-  onClose: () => void;
   state: GameState;
 }) {
   return (
     <>
-      <h2
-        id='day-modal-title'
-        className='m-0 text-[30px] leading-[1.03] font-bold text-ink max-[900px]:text-[28px] max-[520px]:text-[26px]'
-      >
+      <h2 id='day-modal-title' className={modalTitleClassName}>
         День {state.day} • {displayTimeLabel}
       </h2>
-      <p className='m-0 mt-2 text-[22px] font-normal text-ink-soft max-[520px]:text-xl'>
+      <p className='m-0 mt-1 text-xl font-normal text-ink-soft max-xs:text-lg'>
         {getDayPanelSubtitle(state, displayTimeLabel)}
       </p>
       <PanelSection title='Цели дня'>
         <GoalList goals={state.goals} />
       </PanelSection>
       <PanelSection title='Журнал событий'>
-        <EntryList entries={getModalJournal(state.journal)} />
+        <EntryList scrollable entries={getModalJournal(state.journal)} />
       </PanelSection>
       <PanelSection title='Последствия'>
         <EntryList entries={getModalConsequences(state.journal)} />
       </PanelSection>
-      <CloseButton onClick={onClose} />
     </>
   );
 }
@@ -57,29 +51,29 @@ function getDayPanelSubtitle(state: GameState, displayTimeLabel: string) {
     return 'Вечер после прогулки';
   }
 
-  return state.flags.homeDamage === true ? 'Утро уже с последствиями' : 'Утро в процессе';
+  return 'Утро уже с последствиями';
 }
 
 function GoalList({ goals }: { goals: DayGoal[] }) {
   return (
-    <ul className='m-0 grid list-none gap-2.5 p-0'>
+    <ul className={modalListClassName}>
       {goals.map(goal => {
         const displayGoal = getGoalDisplayText(goal.id);
 
         return (
           <li className={goalItemClassName} key={goal.id}>
-            <strong className='text-[22px] leading-[1.06] text-ink max-[520px]:text-xl'>
+            <strong className='text-xl/tight font-bold text-ink max-xs:text-lg'>
               {displayGoal.title}
             </strong>
             <span
               className={cn(
-                'text-[15px] font-bold whitespace-nowrap max-[900px]:whitespace-normal',
+                'text-sm font-bold whitespace-nowrap max-md:whitespace-normal',
                 getGoalStatusClassName(goal.status)
               )}
             >
               Статус: {getGoalStatusLabel(goal.status)}
             </span>
-            <small className='col-span-full text-base leading-[1.2] font-normal text-description max-[520px]:text-[15px]'>
+            <small className='col-span-full text-sm/snug font-normal text-description'>
               {displayGoal.description}
             </small>
           </li>
@@ -89,14 +83,16 @@ function GoalList({ goals }: { goals: DayGoal[] }) {
   );
 }
 
-function EntryList({ entries }: { entries: string[] }) {
+function EntryList({ entries, scrollable = false }: { entries: string[]; scrollable?: boolean }) {
   return (
-    <ul className='m-0 grid list-none gap-2.5 p-0'>
+    <ul
+      className={cn(
+        modalListClassName,
+        scrollable && entries.length > 4 && 'max-h-30 overflow-y-auto pr-2'
+      )}
+    >
       {entries.map((entry, index) => (
-        <li
-          className='text-lg leading-[1.2] font-normal text-ink-soft max-[520px]:text-base'
-          key={`${entry}-${String(index)}`}
-        >
+        <li className={modalBodyTextClassName} key={`${entry}-${String(index)}`} title={entry}>
           — {entry}
         </li>
       ))}
@@ -108,5 +104,5 @@ function getGoalStatusClassName(status: GoalStatus) {
   if (status === 'done') return 'text-success';
   if (status === 'failed') return 'text-danger';
   if (status === 'at_risk') return 'text-warning';
-  return 'text-[#7d3328]';
+  return 'text-emphasis';
 }

@@ -33,7 +33,7 @@ export function getGoalDisplayText(id: DayGoalId) {
 }
 
 export function getModalJournal(stateJournal: string[]) {
-  if (stateJournal.length) return stateJournal.slice(-3);
+  if (stateJournal.length) return stateJournal.slice(-6);
 
   return [
     'Бублик принёс носок',
