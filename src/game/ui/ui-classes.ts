@@ -9,6 +9,8 @@ export const actionBarClassName =
   'flex w-full items-stretch justify-center gap-2 max-md:justify-start max-md:overflow-x-auto max-md:px-1 max-md:pb-1 max-md:snap-x max-md:snap-proximity';
 export const choiceCardClassName = `${choiceFrameClassName} box-border flex min-h-18 w-52 shrink-0 cursor-pointer flex-col justify-center px-3 py-2 text-left text-ink hover:brightness-105 focus-visible:brightness-105 focus-visible:outline-none active:brightness-95 max-md:snap-center max-md:scroll-ml-3`;
 export const choiceCardWideClassName = 'w-64 max-md:w-60';
+export const menuChoiceButtonClassName = `${choiceFrameClassName} menu-button-motion box-border flex min-h-20 w-80 cursor-pointer flex-col justify-center px-5 py-3 text-left text-ink max-xs:w-full`;
+export const menuSmallButtonClassName = `${choiceFrameClassName} menu-button-motion box-border grid min-h-14 min-w-40 cursor-pointer place-items-center px-4 py-2 text-center text-base font-normal text-ink`;
 
 export const modalRootClassName =
   'absolute inset-0 z-50 m-0 size-full max-h-none max-w-none border-0 bg-transparent p-0';

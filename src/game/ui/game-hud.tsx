@@ -51,12 +51,12 @@ export function GameHud({
         aria-label='Бублик'
       >
         <img
-          className='size-28 -scale-x-100 object-contain max-md:size-16 max-xs:size-12'
+          className='size-22 -scale-x-100 object-contain max-md:size-16 max-xs:size-12'
           src={uiAssets.dogAvatar}
           alt='Бублик'
         />
-        <div className='grid min-w-0 gap-2 max-xs:gap-1'>
-          <div className='truncate text-3xl leading-none font-normal text-ui-text hud-text-shadow max-md:text-2xl max-xs:text-xl'>
+        <div className='mt-4 grid min-w-0 gap-2'>
+          <div className='truncate text-[26px] leading-none font-normal text-ui-text hud-text-shadow max-md:text-2xl max-xs:text-xl'>
             Бублик
           </div>
           <TrustHearts value={trust} />
@@ -64,7 +64,7 @@ export function GameHud({
       </header>
 
       <div
-        className='flex w-fit items-center gap-2 justify-self-center text-3xl leading-none font-normal whitespace-nowrap text-ui-text hud-text-shadow max-md:col-span-2 max-md:row-start-2 max-md:mt-2 max-md:text-2xl max-xs:text-xl'
+        className='mt-4 flex w-fit items-center gap-2 justify-self-center text-[28px] leading-none font-normal whitespace-nowrap text-ui-text hud-text-shadow max-md:col-span-2 max-md:row-start-2 max-md:mt-2 max-md:text-2xl max-xs:text-xl'
         aria-label={`День ${String(day)}, ${displayTimeLabel}`}
       >
         <span>
@@ -79,7 +79,7 @@ export function GameHud({
       </div>
 
       <nav
-        className='pointer-events-auto flex gap-2 justify-self-end max-md:col-start-2 max-md:row-start-1 max-xs:gap-1.5'
+        className='pointer-events-auto mt-4 flex gap-2 justify-self-end max-md:col-start-2 max-md:row-start-1 max-xs:gap-1.5'
         aria-label='Меню'
       >
         <TopMenuButton icon={uiAssets.iconDay} label='День' onClick={onOpenDayPanel} />
